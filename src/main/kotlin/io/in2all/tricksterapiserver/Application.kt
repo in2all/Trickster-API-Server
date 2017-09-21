@@ -2,14 +2,14 @@ package io.in2all.tricksterapiserver
 
 import io.in2all.tricksterapiserver.routers.AuthRouter
 import io.in2all.tricksterapiserver.routers.UsersRouter
-import io.vertx.core.AbstractVerticle
-import io.vertx.core.Future
+import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 
-class Application : AbstractVerticle() {
+object Application {
+    val vertx = Vertx.vertx()!!
     private val router = Router.router(vertx)
 
-    override fun start(startFuture: Future<Void>?) {
+    fun start() {
         router.mountSubRouter(AuthRouter.route, AuthRouter.router)
         router.mountSubRouter(UsersRouter.route, UsersRouter.router)
 
@@ -18,9 +18,9 @@ class Application : AbstractVerticle() {
                 .requestHandler { router.accept(it) }
                 .listen(Integer.getInteger("http.port", 8080)) {
                     if (it.succeeded()) {
-                        startFuture?.complete()
+                        println("Server has started.")
                     } else {
-                        startFuture?.fail(it.cause())
+                        println(it.cause())
                     }
                 }
     }
