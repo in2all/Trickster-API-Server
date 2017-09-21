@@ -1,17 +1,17 @@
-package io.in2all.tricksterapiserver.verticles
+package io.in2all.tricksterapiserver
 
+import io.in2all.tricksterapiserver.routers.AuthRouter
+import io.in2all.tricksterapiserver.routers.UsersRouter
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.ext.web.Router
 
-class AuthVerticle : AbstractVerticle() {
+class Application : AbstractVerticle() {
+    private val router = Router.router(vertx)
+
     override fun start(startFuture: Future<Void>?) {
-        val router = Router
-                .router(vertx)
-                .apply {
-                    get("/signin").handler { it.response().end("Sign in page") }
-                    get("/signup").handler { it.response().end("Sign up page") }
-                }
+        router.mountSubRouter(AuthRouter.route, AuthRouter.router)
+        router.mountSubRouter(UsersRouter.route, UsersRouter.router)
 
         vertx
                 .createHttpServer()
