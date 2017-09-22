@@ -1,13 +1,13 @@
-package io.in2all.tricksterapiserver.routers
+package co.in2all.trickster.api.server.routers
 
-import io.in2all.tricksterapiserver.Application
-import io.in2all.tricksterapiserver.models.User
+import co.in2all.trickster.api.server.Application
+import co.in2all.trickster.api.server.models.User
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 
-object UsersRouter {
-    val route = "/users"
-    val router= Router
+object UsersRouter : IRouter {
+    override val route = "/users"
+    override val router = Router
             .router(Application.vertx)
             .apply {
                 get("/:id").handler {

@@ -1,11 +1,11 @@
-package io.in2all.tricksterapiserver.routers
+package co.in2all.trickster.api.server.routers
 
-import io.in2all.tricksterapiserver.Application
+import co.in2all.trickster.api.server.Application
 import io.vertx.ext.web.Router
 
-object AuthRouter {
-    val route = "/"
-    val router = Router
+object AuthRouter : IRouter {
+    override val route = "/"
+    override val router = Router
             .router(Application.vertx)
             .apply {
                 get("/signin").handler { it.response().end("Sign in page") }
