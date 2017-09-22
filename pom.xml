@@ -46,6 +46,13 @@
             <artifactId>vertx-web</artifactId>
             <version>3.4.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-templ-freemarker -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-templ-freemarker</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
