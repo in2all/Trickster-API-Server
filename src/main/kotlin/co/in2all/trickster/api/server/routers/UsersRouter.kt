@@ -7,7 +7,7 @@ import io.vertx.ext.web.Router
 
 object UsersRouter : IRouter {
     override val route = "/users"
-    override val router = Router
+    override val router: Router = Router
             .router(Application.vertx)
             .apply {
                 get("/:id").handler {
@@ -16,5 +16,5 @@ object UsersRouter : IRouter {
                     it.response().putHeader("Content-Type", "application/json; charset=utf-8")
                     it.response().end(Json.encodePrettily(User(id?.toInt())))
                 }
-            }!!
+            }
 }

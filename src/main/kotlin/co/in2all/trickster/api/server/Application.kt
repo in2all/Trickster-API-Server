@@ -7,7 +7,7 @@ import io.vertx.ext.web.Router
 import java.util.Date
 
 object Application {
-    val vertx = Vertx.vertx()!!
+    val vertx: Vertx = Vertx.vertx()
 
     private val router = Router.router(vertx)
     private val port = Integer.getInteger("http.port", 8080)
