@@ -24,6 +24,7 @@ object AuthRouter : IRouter {
                 }
                 post("/signin/:appId").handler { it.response().end(it.pathParams()["appId"]) }
                 get("/signup").handler { it.response().end("Sign up page") }
+                get("/auth").handler { it.response().end("Auth page") }
             }
 
     private val engine = FreeMarkerTemplateEngine.create()

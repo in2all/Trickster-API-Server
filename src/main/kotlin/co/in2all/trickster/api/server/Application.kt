@@ -1,6 +1,7 @@
 package co.in2all.trickster.api.server
 
 import co.in2all.trickster.api.server.routers.AuthRouter
+import co.in2all.trickster.api.server.routers.ErrorsRouter
 import co.in2all.trickster.api.server.routers.UsersRouter
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
@@ -13,7 +14,7 @@ object Application {
     private val port = Integer.getInteger("http.port", 8080)
 
     fun start() {
-        listOf(AuthRouter, UsersRouter)
+        listOf(AuthRouter, UsersRouter, ErrorsRouter)
                 .forEach { router.mountSubRouter(it.route, it.router) }
 
         vertx
