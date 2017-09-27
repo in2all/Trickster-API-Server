@@ -8,6 +8,9 @@ object ErrorsRouter : IRouter {
     override val router: Router = Router
             .router(Application.vertx)
             .apply {
-                get("/*").handler { it.response().end("404") }
+                get("/*").handler {
+                    // TODO: Add 404 error page rendering.
+                    it.response().setStatusCode(404).end("404")
+                }
             }
 }
