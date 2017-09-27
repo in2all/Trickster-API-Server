@@ -3,16 +3,16 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.in2all</groupId>
-    <artifactId>trickster-api-server</artifactId>
+    <groupId>co.in2all.trickster.api</groupId>
+    <artifactId>server</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
-    <name>io.in2all trickster-api-server</name>
+    <name>co.in2all.trickster.api.server</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.1.4-3</kotlin.version>
+        <kotlin.version>1.1.50</kotlin.version>
         <junit.version>4.12</junit.version>
     </properties>
 
@@ -46,6 +46,13 @@
             <artifactId>vertx-web</artifactId>
             <version>3.4.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-templ-freemarker -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-templ-freemarker</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
