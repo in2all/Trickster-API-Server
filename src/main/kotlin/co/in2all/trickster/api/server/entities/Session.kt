@@ -10,7 +10,7 @@ data class Session(
         @GraphId
         var id: Long? = null,
 
-        var auth_token: String? = null,
+        var access_token: String? = null,
         var expires_in: Long? = null,
         var refresh_token: String? = null
 )

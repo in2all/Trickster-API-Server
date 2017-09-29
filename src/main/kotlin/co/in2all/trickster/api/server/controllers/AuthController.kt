@@ -1,7 +1,7 @@
 package co.in2all.trickster.api.server.controllers
 
 import co.in2all.trickster.api.server.errors.ApiError
-import co.in2all.trickster.api.server.repositories.AccessTokensRepository
+import co.in2all.trickster.api.server.repositories.AuthTokensRepository
 import co.in2all.trickster.api.server.repositories.AppsRepository
 import co.in2all.trickster.api.server.repositories.SessionsRepository
 import co.in2all.trickster.api.server.repositories.UsersRepository
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 class AuthController @Autowired constructor(
         val appsRepository: AppsRepository,
         val usersRepository: UsersRepository,
-        val accessTokensRepository: AccessTokensRepository,
+        val authTokensRepository: AuthTokensRepository,
         var sessionsRepository: SessionsRepository) {
 
     @GetMapping("/signin/{client_id}")
@@ -46,7 +46,7 @@ class AuthController @Autowired constructor(
             val token = RandomStringUtils.randomAlphabetic(20)
             val expiresIn = Date().time + TimeUnit.MINUTES.toMillis(10)
 
-            accessTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
+            authTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
 
             "redirect:${app.redirect_uri}/$token"
         } else {
@@ -59,17 +59,17 @@ class AuthController @Autowired constructor(
     @GetMapping("/auth")
     @ResponseBody
     fun createAndGetSession(
-            @RequestParam(value = "access_token", required = true) accessToken: String,
+            @RequestParam(value = "auth_token", required = true) authToken: String,
             @RequestParam(value = "client_id", required = true) clientId: String,
             @RequestParam(value = "client_secret", required = true) clientSecret: String): Any {
-        return if (accessTokensRepository.get(accessToken, clientId, clientSecret) != null) {
+        return if (authTokensRepository.get(authToken, clientId, clientSecret) != null) {
             // TODO: Тут тоже должны генерироваться уникальные данные.
-            val authToken = RandomStringUtils.randomAlphabetic(20)
+            val accessToken = RandomStringUtils.randomAlphabetic(20)
             val expiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
             val refreshToken = RandomStringUtils.randomAlphabetic(20)
 
-            sessionsRepository.create(accessToken, authToken, expiresIn, refreshToken)
-            sessionsRepository.get(authToken)!!
+            sessionsRepository.create(authToken, accessToken, expiresIn, refreshToken)
+            sessionsRepository.get(accessToken)!!
         } else {
             ApiError.AUTH
         }
