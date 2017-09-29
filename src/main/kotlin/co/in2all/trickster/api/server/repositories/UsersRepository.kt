@@ -6,10 +6,7 @@ import org.springframework.data.neo4j.repository.GraphRepository
 import org.springframework.data.repository.query.Param
 
 interface UsersRepository : GraphRepository<User>{
-    @Query("MATCH (u:User) " +
-           "WHERE u.email = {email} and u.password = {password} " +
-           "RETURN u")
-    fun getByEmailAndPassword(
-            @Param("email") email: String,
+    @Query("MATCH (u:User {email: {email}, password: {password}}) RETURN u")
+    fun get(@Param("email") email: String,
             @Param("password") password: String): User?
 }

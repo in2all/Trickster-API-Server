@@ -6,13 +6,16 @@ import org.springframework.data.neo4j.repository.GraphRepository
 import org.springframework.data.repository.query.Param
 
 interface SessionsRepository : GraphRepository<Session> {
-    @Query("MATCH (u:User {email: {email}}) " +
-           "MATCH (a:App {client_id: {clientId}}) " +
-           "CREATE (s:Session {access_token: {accessToken}, auth_token: {authToken}, expires_in: {expiresIn}})-[:STARTED_BY]->(u), (s)-[:STARTED_IN]->(a)")
-    fun createSession(
-            @Param("email") email: String,
-            @Param("clientId") clientId: String,
-            @Param("accessToken") accessToken: String,
-            @Param("authToken") authToken: String,
-            @Param("expiresIn") expiresIn: Long)
+    @Query("MATCH (s:Session {auth_token: {auth_token}}) RETURN s")
+    fun get(@Param("auth_token") authToken: String): Session?
+
+    @Query("MATCH (t:AccessToken {token: {token}})-[:REQUESTED_BY]->(u), " +
+           "      (t)-[:REQUESTED_FOR]->(a) " +
+           "DETACH DELETE t " +
+           "CREATE (s:Session {auth_token: {auth_token}, expires_in: {expires_in}, refresh_token: {refresh_token}})-[:STARTED_BY]->(u), " +
+           "       (s)-[:STARTED_IN]->(a)")
+    fun create(@Param("token") accessToken: String,
+               @Param("auth_token") authToken: String,
+               @Param("expires_in") expiresIn: Long,
+               @Param("refresh_token") refreshToken: String)
 }
