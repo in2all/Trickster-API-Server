@@ -6,5 +6,6 @@ data class AccessToken(
         @GraphId
         var id: Long? = null,
 
-        var token: String? = null
+        var token: String? = null,
+        var expires_in: Long? = null
 )

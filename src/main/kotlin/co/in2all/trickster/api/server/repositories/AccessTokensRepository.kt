@@ -13,8 +13,10 @@ interface AccessTokensRepository : GraphRepository<AccessToken> {
             @Param("client_secret") clientSecret: String): AccessToken?
 
     @Query("MATCH (u:User {email: {email}}), (a:App {client_id: {client_id}}) " +
-           "CREATE (t:AccessToken {token: {token}})-[:REQUESTED_BY]->(u), (t)-[:REQUESTED_FOR]->(a)")
+           "CREATE (t:AccessToken {token: {token}, expires_in: {expires_in}})-[:REQUESTED_BY]->(u)," +
+           "       (t)-[:REQUESTED_FOR]->(a)")
     fun create(@Param("email") email: String,
                @Param("client_id") clientId: String,
-               @Param("token") token: String)
+               @Param("token") token: String,
+               @Param("expires_in") expiresIn: Long)
 }

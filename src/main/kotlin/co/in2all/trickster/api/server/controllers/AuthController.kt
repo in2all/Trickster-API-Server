@@ -44,8 +44,9 @@ class AuthController @Autowired constructor(
         return if (app != null && user != null) {
             // TODO: Добавить генерацию уникальных данных для сессии.
             val token = RandomStringUtils.randomAlphabetic(20)
+            val expiresIn = Date().time + TimeUnit.MINUTES.toMillis(10)
 
-            accessTokensRepository.create(user.email!!, app.client_id!!, token)
+            accessTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
 
             "redirect:${app.redirect_uri}/$token"
         } else {
