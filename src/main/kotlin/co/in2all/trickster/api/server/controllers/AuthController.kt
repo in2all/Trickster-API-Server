@@ -74,4 +74,22 @@ class AuthController @Autowired constructor(
             ApiError.AUTH
         }
     }
+
+    @GetMapping("/refresh")
+    @ResponseBody
+    fun refreshAndReturnSession(
+            @RequestParam(value = "refresh_token", required = true) refreshToken: String,
+            @RequestParam(value = "client_id", required = true) clientId: String,
+            @RequestParam(value = "client_secret", required = true) clientSecret: String): Any {
+        return if (sessionsRepository.get(refreshToken, clientId, clientSecret) != null) {
+            // TODO: И тут уникальные данные.
+            val newAccessToken = RandomStringUtils.randomAlphabetic(20)
+            val newExpiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
+            val newRefreshToken = RandomStringUtils.randomAlphabetic(20)
+
+            sessionsRepository.refresh(refreshToken, newAccessToken, newExpiresIn, newRefreshToken)
+        } else {
+            ApiError.REFRESH
+        }
+    }
 }
