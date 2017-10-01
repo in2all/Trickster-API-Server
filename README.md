@@ -1,1 +1,1 @@
-# Trickster-API-Server
+# Trickster API Server
