@@ -1,12 +1,11 @@
 package co.in2all.trickster.api.server.controllers
 
 import co.in2all.trickster.api.server.errors.ApiError
-import co.in2all.trickster.api.server.repositories.AuthTokensRepository
 import co.in2all.trickster.api.server.repositories.AppsRepository
+import co.in2all.trickster.api.server.repositories.AuthTokensRepository
 import co.in2all.trickster.api.server.repositories.SessionsRepository
 import co.in2all.trickster.api.server.repositories.UsersRepository
 import co.in2all.trickster.api.server.utils.Safeguard
-import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
