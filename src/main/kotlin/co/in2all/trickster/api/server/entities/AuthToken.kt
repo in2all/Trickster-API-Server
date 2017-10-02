@@ -4,7 +4,7 @@ import org.neo4j.ogm.annotation.GraphId
 
 data class AuthToken(
         @GraphId
-        var id: Long? = null,
+        private var id: Long? = null,
 
         var token: String? = null,
         var expires_in: Long? = null

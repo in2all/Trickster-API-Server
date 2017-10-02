@@ -6,7 +6,7 @@ import org.neo4j.ogm.annotation.NodeEntity
 @NodeEntity
 data class App(
         @GraphId
-        var id: Long? = null,
+        private var id: Long? = null,
 
         var name: String? = null,
         var client_id: String? = null,

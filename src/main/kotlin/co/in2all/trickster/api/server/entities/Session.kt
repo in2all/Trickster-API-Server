@@ -8,7 +8,7 @@ data class Session(
         // TODO: Убрать отсюда id.
         // Сейчас нельзя, так как нужен уникальный параметр.
         @GraphId
-        var id: Long? = null,
+        private var id: Long? = null,
 
         var access_token: String? = null,
         var expires_in: Long? = null,
