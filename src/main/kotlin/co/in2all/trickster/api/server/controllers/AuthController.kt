@@ -5,6 +5,7 @@ import co.in2all.trickster.api.server.repositories.AuthTokensRepository
 import co.in2all.trickster.api.server.repositories.AppsRepository
 import co.in2all.trickster.api.server.repositories.SessionsRepository
 import co.in2all.trickster.api.server.repositories.UsersRepository
+import co.in2all.trickster.api.server.utils.Safeguard
 import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -41,9 +42,9 @@ class AuthController @Autowired constructor(
         val app = appsRepository.get(clientId)
         val user = usersRepository.get(email, password)
 
-        return if (app != null && user != null) {
-            // TODO: Добавить генерацию уникальных данных для сессии.
-            val token = RandomStringUtils.randomAlphabetic(20)
+        // TODO: Сделать что-нибудь с мутабельностью полей user!
+        return if (app != null && user != null && user.email != null) {
+            val token = Safeguard.getUniqueToken()
             val expiresIn = Date().time + TimeUnit.MINUTES.toMillis(10)
 
             authTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
@@ -63,10 +64,9 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "client_id", required = true) clientId: String,
             @RequestParam(value = "client_secret", required = true) clientSecret: String): Any {
         return if (authTokensRepository.get(authToken, clientId, clientSecret) != null) {
-            // TODO: Тут тоже должны генерироваться уникальные данные.
-            val accessToken = RandomStringUtils.randomAlphabetic(20)
+            val accessToken = Safeguard.getUniqueToken()
             val expiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
-            val refreshToken = RandomStringUtils.randomAlphabetic(20)
+            val refreshToken = Safeguard.getUniqueToken()
 
             sessionsRepository.create(authToken, accessToken, expiresIn, refreshToken)
             sessionsRepository.get(accessToken)!!
@@ -82,10 +82,9 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "client_id", required = true) clientId: String,
             @RequestParam(value = "client_secret", required = true) clientSecret: String): Any {
         return if (sessionsRepository.get(refreshToken, clientId, clientSecret) != null) {
-            // TODO: И тут уникальные данные.
-            val newAccessToken = RandomStringUtils.randomAlphabetic(20)
+            val newAccessToken = Safeguard.getUniqueToken()
             val newExpiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
-            val newRefreshToken = RandomStringUtils.randomAlphabetic(20)
+            val newRefreshToken = Safeguard.getUniqueToken()
 
             sessionsRepository.refresh(refreshToken, newAccessToken, newExpiresIn, newRefreshToken)
         } else {
