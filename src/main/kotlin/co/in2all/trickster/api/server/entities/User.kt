@@ -6,7 +6,7 @@ import org.neo4j.ogm.annotation.NodeEntity
 @NodeEntity
 data class User(
         @GraphId
-        var id: Long? = null,
+        private var id: Long? = null,
 
         var email: String? = null,
         var password: String? = null
