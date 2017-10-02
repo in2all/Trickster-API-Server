@@ -37,8 +37,8 @@ class AuthController @Autowired constructor(
     @PostMapping("/signin/{client_id}")
     fun createAccessTokenAndRedirect(
             @PathVariable(value = "client_id") clientId: String,
-            @RequestParam(value = "email", required = true) email: String,
-            @RequestParam(value = "password", required = true) password: String): String {
+            @RequestParam(value = "email") email: String,
+            @RequestParam(value = "password") password: String): String {
         val app = appsRepository.get(clientId)
         val user = usersRepository.get(email, password)
 
@@ -60,9 +60,9 @@ class AuthController @Autowired constructor(
     @GetMapping("/auth")
     @ResponseBody
     fun createAndGetSession(
-            @RequestParam(value = "auth_token", required = true) authToken: String,
-            @RequestParam(value = "client_id", required = true) clientId: String,
-            @RequestParam(value = "client_secret", required = true) clientSecret: String): Any {
+            @RequestParam(value = "auth_token") authToken: String,
+            @RequestParam(value = "client_id") clientId: String,
+            @RequestParam(value = "client_secret") clientSecret: String): Any {
         return if (authTokensRepository.get(authToken, clientId, clientSecret) != null) {
             val accessToken = Safeguard.getUniqueToken()
             val expiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
@@ -78,9 +78,9 @@ class AuthController @Autowired constructor(
     @GetMapping("/refresh")
     @ResponseBody
     fun refreshAndReturnSession(
-            @RequestParam(value = "refresh_token", required = true) refreshToken: String,
-            @RequestParam(value = "client_id", required = true) clientId: String,
-            @RequestParam(value = "client_secret", required = true) clientSecret: String): Any {
+            @RequestParam(value = "refresh_token") refreshToken: String,
+            @RequestParam(value = "client_id") clientId: String,
+            @RequestParam(value = "client_secret") clientSecret: String): Any {
         return if (sessionsRepository.get(refreshToken, clientId, clientSecret) != null) {
             val newAccessToken = Safeguard.getUniqueToken()
             val newExpiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
