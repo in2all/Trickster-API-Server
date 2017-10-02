@@ -5,8 +5,6 @@ import org.neo4j.ogm.annotation.NodeEntity
 
 @NodeEntity
 data class Session(
-        // TODO: Убрать отсюда id.
-        // Сейчас нельзя, так как нужен уникальный параметр.
         @GraphId
         private var id: Long? = null,
 

@@ -4,6 +4,7 @@ import co.in2all.trickster.api.server.errors.ApiError
 import co.in2all.trickster.api.server.repositories.FacesRepository
 import co.in2all.trickster.api.server.repositories.SessionsRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
@@ -16,7 +17,7 @@ class FacesController @Autowired constructor(
     @GetMapping("")
     @ResponseBody
     fun getAllFaces(
-            @RequestParam(value = "access_token", required = true) accessToken: String): Any {
+            @RequestParam(value = "access_token") accessToken: String): Any {
         return if (sessionsRepository.get(accessToken) != null) {
             facesRepository.getAll(accessToken)
         } else {
@@ -27,8 +28,8 @@ class FacesController @Autowired constructor(
     @GetMapping("/{name}")
     @ResponseBody
     fun getByName(
-            @PathVariable(value = "name", required = true) name: String,
-            @RequestParam(value = "access_token", required = true) accessToken: String): Any {
+            @PathVariable(value = "name") name: String,
+            @RequestParam(value = "access_token") accessToken: String): Any {
         return if (sessionsRepository.get(accessToken) != null) {
             facesRepository.get(name) ?: ApiError.OBJECT_NOT_EXIST
         } else {
@@ -53,6 +54,8 @@ class FacesController @Autowired constructor(
                         name,
                         description ?: "",
                         avatar ?: "")
+
+                HttpStatus.OK
             } else {
                 ApiError.TOO_MANY_FACES
             }
