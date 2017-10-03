@@ -6,13 +6,13 @@ import co.in2all.trickster.api.server.repositories.AuthTokensRepository
 import co.in2all.trickster.api.server.repositories.SessionsRepository
 import co.in2all.trickster.api.server.repositories.UsersRepository
 import co.in2all.trickster.api.server.utils.Safeguard
+import com.typesafe.config.ConfigFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 @Controller
 @RequestMapping("/")
@@ -43,8 +43,7 @@ class AuthController @Autowired constructor(
         // TODO: Сделать что-нибудь с мутабельностью полей user!
         return if (app != null && user != null && user.email != null) {
             val token = Safeguard.getUniqueToken()
-            // TODO: Перенести время expiresIn в конфиги.
-            val expiresIn = Date().time + TimeUnit.MINUTES.toMillis(10)
+            val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
 
             authTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
 
@@ -76,8 +75,7 @@ class AuthController @Autowired constructor(
         return if (app != null) {
             return if (usersRepository.get(email) == null) {
                 val token = Safeguard.getUniqueToken()
-                // TODO: Перенести время expiresIn в конфиги.
-                val expiresIn = Date().time + TimeUnit.MINUTES.toMillis(10)
+                val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
 
                 // TODO-misonijnik: Добавить шифрование пароля перед записью в БД.
                 usersRepository.create(email, password)
@@ -104,7 +102,7 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "client_secret") clientSecret: String): Any {
         return if (authTokensRepository.get(authToken, clientId, clientSecret) != null) {
             val accessToken = Safeguard.getUniqueToken()
-            val expiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
+            val expiresIn = Date().time + ConfigFactory.load().getLong("access_token.lifetime")
             val refreshToken = Safeguard.getUniqueToken()
 
             sessionsRepository.create(authToken, accessToken, expiresIn, refreshToken)
@@ -122,8 +120,7 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "client_secret") clientSecret: String): Any {
         return if (sessionsRepository.get(refreshToken, clientId, clientSecret) != null) {
             val newAccessToken = Safeguard.getUniqueToken()
-            // TODO: Перенести время expiresIn в конфиги.
-            val newExpiresIn = Date().time + TimeUnit.DAYS.toMillis(1)
+            val newExpiresIn = Date().time + ConfigFactory.load().getLong("access_token.lifetime")
             val newRefreshToken = Safeguard.getUniqueToken()
 
             sessionsRepository.refresh(refreshToken, newAccessToken, newExpiresIn, newRefreshToken)

@@ -3,6 +3,7 @@ package co.in2all.trickster.api.server.controllers
 import co.in2all.trickster.api.server.errors.ApiError
 import co.in2all.trickster.api.server.repositories.FacesRepository
 import co.in2all.trickster.api.server.repositories.SessionsRepository
+import com.typesafe.config.ConfigFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
@@ -43,8 +44,7 @@ class FacesController @Autowired constructor(
                @RequestParam(value = "name") name: String,
                @RequestParam(value = "description", required = false) description: String?,
                @RequestParam(value = "avatar", required = false) avatar: String?): Any {
-        // TODO: Засунуть в конфиг.
-        val maxFacesNumber = 20
+        val maxFacesNumber = ConfigFactory.load().getLong("faces.max_number")
 
         return if (sessionsRepository.get(accessToken) != null) {
             return if (facesRepository.count(accessToken) <= maxFacesNumber) {
