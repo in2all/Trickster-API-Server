@@ -38,23 +38,28 @@ class AuthController @Autowired constructor(
     fun createAccessTokenAndRedirect(
             @PathVariable(value = "client_id") clientId: String,
             @RequestParam(value = "email") email: String,
-            @RequestParam(value = "password") password: String): String {
+            @RequestParam(value = "password") password: String): Any {
         val app = appsRepository.get(clientId)
-        // TODO-misonijnik: Тут проверяется существование юзера с переданным паролем. Добавить шифрование.
-        val user = usersRepository.get(email, password)
 
-        // TODO: Сделать что-нибудь с мутабельностью полей user!
-        return if (app != null && user != null && user.email != null) {
-            val token = Safeguard.getUniqueToken()
-            val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
+        return if (app != null) {
+            // TODO-misonijnik: Тут проверяется существование юзера с переданным паролем. Добавить шифрование.
+            val user = usersRepository.get(email, password)
 
-            authTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
+            // TODO: Сделать что-нибудь с мутабельностью полей user!
+            return if (user != null) {
+                val token = Safeguard.getUniqueToken()
+                val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
 
-            "redirect:${app.redirect_uri}/$token"
+                authTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
+
+                "redirect:${app.redirect_uri}/$token"
+            } else {
+                // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
+                "redirect:/signin/$clientId"
+            }
         } else {
-            // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
-            // Сделать после появления дизайна страницы.
-            "redirect:/signin/$clientId"
+            // TODO: Не уверен, что в этом случае нужно отдавать 404. Разобраться.
+            ModelAndView("404", HttpStatus.NOT_FOUND)
         }
     }
 
