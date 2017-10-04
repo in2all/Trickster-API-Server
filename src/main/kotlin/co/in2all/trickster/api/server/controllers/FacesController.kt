@@ -38,10 +38,10 @@ class FacesController @Autowired constructor(
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/{name}")
     @ResponseBody
-    fun create(@RequestParam(value = "access_token") accessToken: String,
-               @RequestParam(value = "name") name: String,
+    fun create(@PathVariable(value = "name") name: String,
+               @RequestParam(value = "access_token") accessToken: String,
                @RequestParam(value = "description", required = false) description: String?,
                @RequestParam(value = "avatar", required = false) avatar: String?): Any {
         val maxFacesNumber = ConfigFactory.load().getLong("faces.max_number")
@@ -67,4 +67,22 @@ class FacesController @Autowired constructor(
             ApiError.INVALID_ACCESS_TOKEN
         }
     }
+
+    // TODO: Решить, что делать с удалением ликов.
+//    @DeleteMapping("/{name}")
+//    @ResponseBody
+//    fun delete(@PathVariable(value = "name") name: String,
+//               @RequestParam(value = "access_token") accessToken: String): Any {
+//        return if (sessionsRepository.get(accessToken) != null) {
+//            return if (facesRepository.get(name, accessToken) != null) {
+//                facesRepository.delete(name, accessToken)
+//
+//                HttpStatus.OK
+//            } else {
+//                ApiError.OBJECT_NOT_EXISTS
+//            }
+//        } else {
+//            ApiError.INVALID_ACCESS_TOKEN
+//        }
+//    }
 }

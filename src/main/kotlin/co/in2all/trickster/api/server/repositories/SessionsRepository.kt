@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param
 
 interface SessionsRepository : GraphRepository<Session> {
     @Query("MATCH (s:Session {access_token: {access_token}}) RETURN s")
-    fun get(@Param("access_token") authToken: String): Session?
+    fun get(@Param("access_token") accessToken: String): Session?
 
     @Query("MATCH (s:Session { refresh_token: {refresh_token} })-[:STARTED_IN]->(a:App { client_id: {client_id}, client_secret: {client_secret} }) " +
            "RETURN s")
