@@ -32,7 +32,7 @@ class FacesController @Autowired constructor(
             @PathVariable(value = "name") name: String,
             @RequestParam(value = "access_token") accessToken: String): Any {
         return if (sessionsRepository.get(accessToken) != null) {
-            facesRepository.get(name) ?: ApiError.OBJECT_NOT_EXIST
+            facesRepository.get(name) ?: ApiError.OBJECT_NOT_EXISTS
         } else {
             ApiError.INVALID_ACCESS_TOKEN
         }
@@ -47,17 +47,21 @@ class FacesController @Autowired constructor(
         val maxFacesNumber = ConfigFactory.load().getLong("faces.max_number")
 
         return if (sessionsRepository.get(accessToken) != null) {
-            return if (facesRepository.count(accessToken) <= maxFacesNumber) {
-                // TODO: Добавить проверку аватара на легитимность.
-                facesRepository.create(
-                        accessToken,
-                        name,
-                        description ?: "",
-                        avatar ?: "")
+            return if (facesRepository.get(name) == null) {
+                return if (facesRepository.count(accessToken) <= maxFacesNumber) {
+                    // TODO: Добавить проверку аватара на легитимность.
+                    facesRepository.create(
+                            accessToken,
+                            name,
+                            description ?: "",
+                            avatar ?: "")
 
-                HttpStatus.OK
+                    HttpStatus.OK
+                } else {
+                    ApiError.TOO_MANY_FACES
+                }
             } else {
-                ApiError.TOO_MANY_FACES
+                ApiError.OBJECT_ALREADY_EXISTS
             }
         } else {
             ApiError.INVALID_ACCESS_TOKEN
