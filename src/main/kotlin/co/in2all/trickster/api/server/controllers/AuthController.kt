@@ -24,8 +24,11 @@ class AuthController @Autowired constructor(
 
     @GetMapping("/signin/{client_id}")
     fun signInWithApp(@PathVariable(value = "client_id") clientId: String): ModelAndView {
-        return if (appsRepository.get(clientId) != null) {
-            ModelAndView("signin", hashMapOf("client_id" to clientId))
+        val app = appsRepository.get(clientId)
+        return if (app != null) {
+            ModelAndView("signin", hashMapOf(
+                    "client_id" to app.client_id,
+                    "app_name" to app.name))
         } else {
             ModelAndView("404", HttpStatus.NOT_FOUND)
         }
