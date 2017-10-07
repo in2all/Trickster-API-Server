@@ -19,10 +19,11 @@ class FacesController @Autowired constructor(
     @ResponseBody
     fun getAllFaces(
             @RequestParam(value = "access_token") accessToken: String): Any {
-        return if (sessionsRepository.get(accessToken) != null) {
-            facesRepository.getAll(accessToken)
-        } else {
-            ApiError.INVALID_ACCESS_TOKEN
+        val session = sessionsRepository.get(accessToken)
+
+        return when (session) {
+            null -> ApiError.INVALID_ACCESS_TOKEN
+            else -> facesRepository.getAll(accessToken)
         }
     }
 
@@ -31,10 +32,11 @@ class FacesController @Autowired constructor(
     fun getByName(
             @PathVariable(value = "name") name: String,
             @RequestParam(value = "access_token") accessToken: String): Any {
-        return if (sessionsRepository.get(accessToken) != null) {
-            facesRepository.get(name) ?: ApiError.OBJECT_NOT_EXISTS
-        } else {
-            ApiError.INVALID_ACCESS_TOKEN
+        val session = sessionsRepository.get(accessToken)
+
+        return when (session) {
+            null -> ApiError.INVALID_ACCESS_TOKEN
+            else -> facesRepository.get(name) ?: ApiError.OBJECT_NOT_EXISTS
         }
     }
 
@@ -44,45 +46,25 @@ class FacesController @Autowired constructor(
                @RequestParam(value = "access_token") accessToken: String,
                @RequestParam(value = "description", required = false) description: String?,
                @RequestParam(value = "avatar", required = false) avatar: String?): Any {
+        val session = sessionsRepository.get(accessToken)
+        val face = facesRepository.get(name)
+        val facesCount = facesRepository.count(accessToken)
         val maxFacesNumber = ConfigFactory.load().getLong("faces.max_number")
 
-        return if (sessionsRepository.get(accessToken) != null) {
-            return if (facesRepository.get(name) == null) {
-                return if (facesRepository.count(accessToken) <= maxFacesNumber) {
-                    // TODO: Добавить проверку аватара на легитимность.
-                    facesRepository.create(
-                            accessToken,
-                            name,
-                            description ?: "",
-                            avatar ?: "")
+        return when {
+            session == null -> ApiError.INVALID_ACCESS_TOKEN
+            face != null -> ApiError.OBJECT_ALREADY_EXISTS
+            facesCount >= maxFacesNumber -> ApiError.TOO_MANY_FACES
+            else -> {
+                // TODO: Добавить проверку аватара на легитимность.
+                facesRepository.create(
+                        accessToken,
+                        name,
+                        description ?: "",
+                        avatar ?: "")
 
-                    HttpStatus.OK
-                } else {
-                    ApiError.TOO_MANY_FACES
-                }
-            } else {
-                ApiError.OBJECT_ALREADY_EXISTS
+                HttpStatus.OK
             }
-        } else {
-            ApiError.INVALID_ACCESS_TOKEN
         }
     }
-
-    // TODO: Решить, что делать с удалением ликов.
-//    @DeleteMapping("/{name}")
-//    @ResponseBody
-//    fun delete(@PathVariable(value = "name") name: String,
-//               @RequestParam(value = "access_token") accessToken: String): Any {
-//        return if (sessionsRepository.get(accessToken) != null) {
-//            return if (facesRepository.get(name, accessToken) != null) {
-//                facesRepository.delete(name, accessToken)
-//
-//                HttpStatus.OK
-//            } else {
-//                ApiError.OBJECT_NOT_EXISTS
-//            }
-//        } else {
-//            ApiError.INVALID_ACCESS_TOKEN
-//        }
-//    }
 }
