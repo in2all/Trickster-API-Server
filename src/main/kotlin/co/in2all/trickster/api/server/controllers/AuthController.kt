@@ -25,12 +25,12 @@ class AuthController @Autowired constructor(
     @GetMapping("/signin/{client_id}")
     fun signInWithApp(@PathVariable(value = "client_id") clientId: String): ModelAndView {
         val app = appsRepository.get(clientId)
-        return if (app != null) {
-            ModelAndView("signin", hashMapOf(
+
+        return when (app) {
+            null -> ModelAndView("404", HttpStatus.NOT_FOUND)
+            else -> ModelAndView("signin", hashMapOf(
                     "client_id" to app.client_id,
                     "app_name" to app.name))
-        } else {
-            ModelAndView("404", HttpStatus.NOT_FOUND)
         }
     }
 
@@ -41,35 +41,33 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "password") password: String): Any {
         val app = appsRepository.get(clientId)
 
-        return if (app != null) {
-            // TODO-misonijnik: Тут проверяется существование юзера с переданным паролем. Добавить шифрование.
-            val user = usersRepository.get(email, password)
+        // TODO-misonijnik: Тут проверяется существование юзера с переданным паролем. Добавить шифрование.
+        val user = usersRepository.get(email, password)
 
-            // TODO: Сделать что-нибудь с мутабельностью полей user!
-            return if (user != null) {
+        return when {
+            app == null ->
+                // TODO: Не уверен, что в этом случае нужно отдавать 404. Разобраться.
+                ModelAndView("404", HttpStatus.NOT_FOUND)
+            user == null ->
+                // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
+                "redirect:/signin/$clientId"
+            else -> {
                 val token = Safeguard.getUniqueToken()
                 val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
 
                 authTokensRepository.create(user.email!!, app.client_id!!, token, expiresIn)
 
                 "redirect:${app.redirect_uri}/$token"
-            } else {
-                // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
-                "redirect:/signin/$clientId"
             }
-        } else {
-            // TODO: Не уверен, что в этом случае нужно отдавать 404. Разобраться.
-            ModelAndView("404", HttpStatus.NOT_FOUND)
         }
     }
 
     @GetMapping("/signup/{client_id}")
     fun signUpWithApp(
             @PathVariable(value = "client_id") clientId: String): ModelAndView {
-        return if (appsRepository.get(clientId) != null) {
-            ModelAndView("signup", hashMapOf("client_id" to clientId))
-        } else {
-            ModelAndView("404", HttpStatus.NOT_FOUND)
+        return when {
+            appsRepository.get(clientId) == null -> ModelAndView("404", HttpStatus.NOT_FOUND)
+            else -> ModelAndView("signup", hashMapOf("client_id" to clientId))
         }
     }
 
@@ -79,9 +77,18 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "email") email: String,
             @RequestParam(value = "password") password: String): String {
         val app = appsRepository.get(clientId)
+        val user = usersRepository.get(email)
 
-        return if (app != null) {
-            return if (usersRepository.get(email) == null) {
+        return when {
+            app == null ->
+                // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
+                // Сделать после появления дизайна страницы.
+                "redirect:/signup/$clientId"
+            user != null ->
+                // TODO: Сообщение о том, что пользователь уже существует.
+                // Сделать после появления дизайна страницы.
+                "redirect:/signup/$clientId"
+            else -> {
                 val token = Safeguard.getUniqueToken()
                 val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
 
@@ -90,15 +97,7 @@ class AuthController @Autowired constructor(
                 authTokensRepository.create(email, clientId, token, expiresIn)
 
                 "redirect:${app.redirect_uri}/$token"
-            } else {
-                // TODO: Сообщение о том, что пользователь уже существует.
-                // Сделать после появления дизайна страницы.
-                "redirect:/signup/$clientId"
             }
-        } else {
-            // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
-            // Сделать после появления дизайна страницы.
-            "redirect:/signup/$clientId"
         }
     }
 
@@ -108,15 +107,18 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "auth_token") authToken: String,
             @RequestParam(value = "client_id") clientId: String,
             @RequestParam(value = "client_secret") clientSecret: String): Any {
-        return if (authTokensRepository.get(authToken, clientId, clientSecret) != null) {
-            val accessToken = Safeguard.getUniqueToken()
-            val expiresIn = Date().time + ConfigFactory.load().getLong("access_token.lifetime")
-            val refreshToken = Safeguard.getUniqueToken()
+        val authTokenObject = authTokensRepository.get(authToken, clientId, clientSecret)
 
-            sessionsRepository.create(authToken, accessToken, expiresIn, refreshToken)
-            sessionsRepository.get(accessToken)!!
-        } else {
-            ApiError.AUTH
+        return when (authTokenObject) {
+            null -> ApiError.AUTH
+            else -> {
+                val accessToken = Safeguard.getUniqueToken()
+                val expiresIn = Date().time + ConfigFactory.load().getLong("access_token.lifetime")
+                val refreshToken = Safeguard.getUniqueToken()
+
+                sessionsRepository.create(authToken, accessToken, expiresIn, refreshToken)
+                sessionsRepository.get(accessToken)!!
+            }
         }
     }
 
@@ -126,14 +128,17 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "refresh_token") refreshToken: String,
             @RequestParam(value = "client_id") clientId: String,
             @RequestParam(value = "client_secret") clientSecret: String): Any {
-        return if (sessionsRepository.get(refreshToken, clientId, clientSecret) != null) {
-            val newAccessToken = Safeguard.getUniqueToken()
-            val newExpiresIn = Date().time + ConfigFactory.load().getLong("access_token.lifetime")
-            val newRefreshToken = Safeguard.getUniqueToken()
+        val session = sessionsRepository.get(refreshToken, clientId, clientSecret)
 
-            sessionsRepository.refresh(refreshToken, newAccessToken, newExpiresIn, newRefreshToken)
-        } else {
-            ApiError.REFRESH
+        return when (session) {
+            null -> ApiError.REFRESH
+            else -> {
+                val newAccessToken = Safeguard.getUniqueToken()
+                val newExpiresIn = Date().time + ConfigFactory.load().getLong("access_token.lifetime")
+                val newRefreshToken = Safeguard.getUniqueToken()
+
+                sessionsRepository.refresh(refreshToken, newAccessToken, newExpiresIn, newRefreshToken)
+            }
         }
     }
 }
