@@ -1,4 +1,4 @@
-package co.in2all.trickster.api.server.entities
+package co.in2all.trickster.api.server.entity
 
 import org.neo4j.ogm.annotation.GraphId
 import org.neo4j.ogm.annotation.NodeEntity

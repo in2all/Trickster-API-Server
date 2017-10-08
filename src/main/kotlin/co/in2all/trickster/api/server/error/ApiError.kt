@@ -1,4 +1,4 @@
-package co.in2all.trickster.api.server.errors
+package co.in2all.trickster.api.server.error
 
 object ApiError {
     // TODO: Перевести все ошибки правильно.

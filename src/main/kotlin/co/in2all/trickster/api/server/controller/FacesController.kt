@@ -1,8 +1,8 @@
-package co.in2all.trickster.api.server.controllers
+package co.in2all.trickster.api.server.controller
 
-import co.in2all.trickster.api.server.errors.ApiError
-import co.in2all.trickster.api.server.repositories.FacesRepository
-import co.in2all.trickster.api.server.repositories.SessionsRepository
+import co.in2all.trickster.api.server.error.ApiError
+import co.in2all.trickster.api.server.repository.FacesRepository
+import co.in2all.trickster.api.server.repository.SessionsRepository
 import com.typesafe.config.ConfigFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

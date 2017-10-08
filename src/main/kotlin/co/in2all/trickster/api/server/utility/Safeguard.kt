@@ -1,4 +1,4 @@
-package co.in2all.trickster.api.server.utils
+package co.in2all.trickster.api.server.utility
 
 import java.util.UUID
 
