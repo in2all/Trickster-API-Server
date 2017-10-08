@@ -1,11 +1,12 @@
-package co.in2all.trickster.api.server.controllers
+package co.in2all.trickster.api.server.controller
 
-import co.in2all.trickster.api.server.errors.ApiError
-import co.in2all.trickster.api.server.repositories.AppsRepository
-import co.in2all.trickster.api.server.repositories.AuthTokensRepository
-import co.in2all.trickster.api.server.repositories.SessionsRepository
-import co.in2all.trickster.api.server.repositories.UsersRepository
-import co.in2all.trickster.api.server.utils.Safeguard
+import co.in2all.trickster.api.server.error.ApiError
+import co.in2all.trickster.api.server.repository.AppsRepository
+import co.in2all.trickster.api.server.repository.AuthTokensRepository
+import co.in2all.trickster.api.server.repository.SessionsRepository
+import co.in2all.trickster.api.server.repository.UsersRepository
+import co.in2all.trickster.api.server.service.NotificationService
+import co.in2all.trickster.api.server.utility.Safeguard
 import com.typesafe.config.ConfigFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -20,7 +21,7 @@ class AuthController @Autowired constructor(
         val appsRepository: AppsRepository,
         val usersRepository: UsersRepository,
         val authTokensRepository: AuthTokensRepository,
-        var sessionsRepository: SessionsRepository) {
+        val sessionsRepository: SessionsRepository) {
 
     @GetMapping("/signin/{client_id}")
     fun signInWithApp(@PathVariable(value = "client_id") clientId: String): ModelAndView {

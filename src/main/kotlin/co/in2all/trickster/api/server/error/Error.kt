@@ -1,4 +1,4 @@
-package co.in2all.trickster.api.server.errors
+package co.in2all.trickster.api.server.error
 
 data class Error(
         val code: Int? = null,

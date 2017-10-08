@@ -1,4 +1,4 @@
-package co.in2all.trickster.api.server.controllers
+package co.in2all.trickster.api.server.controller
 
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
