@@ -1,15 +1,13 @@
 package co.in2all.trickster.api.server.controller
 
 import co.in2all.trickster.api.server.error.ApiError
-import co.in2all.trickster.api.server.repository.AppsRepository
-import co.in2all.trickster.api.server.repository.AuthTokensRepository
-import co.in2all.trickster.api.server.repository.SessionsRepository
-import co.in2all.trickster.api.server.repository.UsersRepository
+import co.in2all.trickster.api.server.repository.*
 import co.in2all.trickster.api.server.service.NotificationService
 import co.in2all.trickster.api.server.utility.Safeguard
 import com.typesafe.config.ConfigFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.mail.MailException
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
@@ -21,7 +19,9 @@ class AuthController @Autowired constructor(
         val appsRepository: AppsRepository,
         val usersRepository: UsersRepository,
         val authTokensRepository: AuthTokensRepository,
-        val sessionsRepository: SessionsRepository) {
+        val sessionsRepository: SessionsRepository,
+        val signupDataRepository: SignupDataRepository,
+        val notificationService: NotificationService) {
 
     @GetMapping("/signin/{client_id}")
     fun signInWithApp(@PathVariable(value = "client_id") clientId: String): ModelAndView {
@@ -36,7 +36,7 @@ class AuthController @Autowired constructor(
     }
 
     @PostMapping("/signin/{client_id}")
-    fun createAccessTokenAndRedirect(
+    fun createAuthTokenAndRedirect(
             @PathVariable(value = "client_id") clientId: String,
             @RequestParam(value = "email") email: String,
             @RequestParam(value = "password") password: String): Any {
@@ -66,17 +66,21 @@ class AuthController @Autowired constructor(
     @GetMapping("/signup/{client_id}")
     fun signUpWithApp(
             @PathVariable(value = "client_id") clientId: String): ModelAndView {
-        return when {
-            appsRepository.get(clientId) == null -> ModelAndView("404", HttpStatus.NOT_FOUND)
-            else -> ModelAndView("signup", hashMapOf("client_id" to clientId))
+        val app = appsRepository.get(clientId)
+
+        return when (app) {
+            null -> ModelAndView("404", HttpStatus.NOT_FOUND)
+            else -> ModelAndView("signup", hashMapOf(
+                    "client_id" to app.client_id,
+                    "app_name" to app.name))
         }
     }
 
     @PostMapping("/signup/{client_id}")
-    fun createUserAndAccessTokenAndRedirect(
+    fun createSignupTokenAndEmail(
             @PathVariable(value = "client_id") clientId: String,
             @RequestParam(value = "email") email: String,
-            @RequestParam(value = "password") password: String): String {
+            @RequestParam(value = "password") password: String): Any {
         val app = appsRepository.get(clientId)
         val user = usersRepository.get(email)
 
@@ -91,12 +95,41 @@ class AuthController @Autowired constructor(
                 "redirect:/signup/$clientId"
             else -> {
                 val token = Safeguard.getUniqueToken()
+                val expiresIn = Date().time + ConfigFactory.load().getLong("signup_token.lifetime")
+
+                // TODO-misonijnik: Тут сохраняется пароль пользователя. Добавь шифрование.
+                signupDataRepository.create(email, password, clientId, token, expiresIn)
+
+                try {
+                    notificationService.sendEmailConfirmMessage(email, token)
+                }
+                catch (e: MailException) {
+                    // TODO: Сообщение о неверном email.
+                    return "redirect:/signup/$clientId"
+                }
+
+                ModelAndView("check-mailbox")
+            }
+        }
+    }
+
+    @GetMapping("/confirm/{token}")
+    fun createUserAndAuthToken(
+            @PathVariable(value = "token") token: String): Any {
+        val signupData = signupDataRepository.get(token) ?: return ModelAndView("404", HttpStatus.NOT_FOUND)
+        val app = appsRepository.get(signupData.client_id!!)
+
+        return when (app) {
+            null -> ModelAndView("404", HttpStatus.NOT_FOUND)
+            else -> {
+                usersRepository.create(signupData.email!!, signupData.password!!)
+
+                val authToken = Safeguard.getUniqueToken()
                 val expiresIn = Date().time + ConfigFactory.load().getLong("auth_token.lifetime")
 
-                // TODO-misonijnik: Добавить шифрование пароля перед записью в БД.
-                usersRepository.create(email, password)
-                authTokensRepository.create(email, clientId, token, expiresIn)
+                authTokensRepository.create(signupData.email!!, signupData.client_id!!, authToken, expiresIn)
 
+                signupDataRepository.delete(signupData.token!!)
                 "redirect:${app.redirect_uri}/$token"
             }
         }

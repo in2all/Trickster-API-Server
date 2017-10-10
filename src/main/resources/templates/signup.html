@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>Sign up</title>
+    <title>Создать аккаунт</title>
+    <meta charset="utf-8" name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="/css/sign.css">
 </head>
+
 <body>
-<h1>{{client_id}}</h1>
+<header>
+    <h1 id="logo">Трикстер</h1>
+    <h2 id="client-id">{{app_name}}</h2>
+</header>
 <form method="post" action="{{client_id}}">
-    <input type="email" name="email" placeholder="E-mail">
-    <input type="password" name="password" placeholder="Password">
-    <input type="password" name="password_again" placeholder="Confirm password">
-    <input type="submit" value="Sign up">
+    <input type="email" name="email" placeholder="Email" onfocus="this.placeholder=''" onblur="this.placeholder='Email'">
+    <input type="password" name="password" placeholder="Пароль" onfocus="this.placeholder=''" onblur="this.placeholder='Пароль'">
+    <input type="submit" value="Создать аккаунт" id="button">
 </form>
+<footer>
+    <p>Уже зарегистрированы? <a href="/signin/{{client_id}}">Войти</a>.</p>
+</footer>
 </body>
-</html>
