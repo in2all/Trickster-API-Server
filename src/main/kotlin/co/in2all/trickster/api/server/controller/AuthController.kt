@@ -27,7 +27,7 @@ class AuthController @Autowired constructor(
         val refreshPasswordTokensRepository: RefreshPasswordTokensRepository) {
 
     @GetMapping("/signin/{client_id}")
-    fun signInWithApp(@PathVariable(value = "client_id") clientId: String): ModelAndView {
+    fun showSigninPage(@PathVariable(value = "client_id") clientId: String): ModelAndView {
         val app = appsRepository.get(clientId)
 
         return when (app) {
@@ -67,7 +67,7 @@ class AuthController @Autowired constructor(
     }
 
     @GetMapping("/signup/{client_id}")
-    fun signUpWithApp(
+    fun showSignupPage(
             @PathVariable(value = "client_id") clientId: String): ModelAndView {
         val app = appsRepository.get(clientId)
 
@@ -228,12 +228,14 @@ class AuthController @Autowired constructor(
             @PathVariable(value = "token") token: String,
             @RequestParam(value = "new_password") newPassword: String): Any {
         val rpt = refreshPasswordTokensRepository.getByToken(token)
+        val user = refreshPasswordTokensRepository.getUser(token)
 
-        return when (rpt) {
-            null -> ModelAndView("404")
+        return when {
+            rpt == null -> ModelAndView("404")
+            user == null -> ModelAndView("404")
             else -> {
-                // TODO: rpt.user returns null. Fix it.
-                changePasswordService.changePassword(rpt.user!!, newPassword)
+                changePasswordService.changePassword(user, newPassword)
+                refreshPasswordTokensRepository.delete(token)
 
                 "redirect:/signin/${rpt.client_id}"
             }
