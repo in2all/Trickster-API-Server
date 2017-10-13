@@ -14,7 +14,7 @@
 <form method="post" action="{{client_id}}">
     <input type="email" name="email" placeholder="Email" onfocus="this.placeholder=''" onblur="this.placeholder='Email'">
     <input type="password" name="password" placeholder="Пароль" onfocus="this.placeholder=''" onblur="this.placeholder='Пароль'">
-    <input type="submit" value="Войти" id="button"><a href="Forgot password?">Забыли пароль?</a>
+    <input type="submit" value="Войти" id="button"><a href="/forgot-password/{{client_id}}">Забыли пароль?</a>
 </form>
 <footer>
     <p>Нет аккаунта? <a href="/signup/{{client_id}}">Создать</a>.</p>

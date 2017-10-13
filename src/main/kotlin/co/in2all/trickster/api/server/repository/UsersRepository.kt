@@ -16,4 +16,10 @@ interface UsersRepository : GraphRepository<User>{
     @Query("CREATE (:User {email: {email}, password: {password}})")
     fun create(@Param("email") email: String,
                @Param("password") password: String)
+
+    @Query("MATCH (u:User {email: {email}}) " +
+           "SET u.password = {new_password}")
+    fun changePassword(
+            @Param("email") email: String,
+            @Param("new_password") newPassword: String)
 }

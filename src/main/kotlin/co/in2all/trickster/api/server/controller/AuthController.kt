@@ -2,6 +2,7 @@ package co.in2all.trickster.api.server.controller
 
 import co.in2all.trickster.api.server.error.ApiError
 import co.in2all.trickster.api.server.repository.*
+import co.in2all.trickster.api.server.service.ChangePasswordService
 import co.in2all.trickster.api.server.service.NotificationService
 import co.in2all.trickster.api.server.utility.Safeguard
 import com.typesafe.config.ConfigFactory
@@ -21,7 +22,9 @@ class AuthController @Autowired constructor(
         val authTokensRepository: AuthTokensRepository,
         val sessionsRepository: SessionsRepository,
         val signupDataRepository: SignupDataRepository,
-        val notificationService: NotificationService) {
+        val notificationService: NotificationService,
+        val changePasswordService: ChangePasswordService,
+        val refreshPasswordTokensRepository: RefreshPasswordTokensRepository) {
 
     @GetMapping("/signin/{client_id}")
     fun signInWithApp(@PathVariable(value = "client_id") clientId: String): ModelAndView {
@@ -156,7 +159,7 @@ class AuthController @Autowired constructor(
         }
     }
 
-    @GetMapping("/refresh")
+    @GetMapping("/refresh/token")
     @ResponseBody
     fun refreshAndReturnSession(
             @RequestParam(value = "refresh_token") refreshToken: String,
@@ -172,6 +175,67 @@ class AuthController @Autowired constructor(
                 val newRefreshToken = Safeguard.getUniqueToken()
 
                 sessionsRepository.refresh(refreshToken, newAccessToken, newExpiresIn, newRefreshToken)
+            }
+        }
+    }
+
+    @GetMapping("/forgot-password/{client_id}")
+    fun showForgotPasswordPage(
+            @PathVariable(value = "client_id") clientId: String): ModelAndView {
+        val app = appsRepository.get(clientId)
+
+        return when (app) {
+            null -> ModelAndView("404")
+            else -> ModelAndView("forgot-password", hashMapOf("client_id" to clientId))
+        }
+    }
+
+    @PostMapping("/forgot-password/{client_id}")
+    fun sendChangePasswordEmail(
+            @PathVariable(value = "client_id") clientId: String,
+            @RequestParam(value = "email") email: String): Any {
+
+        val app = appsRepository.get(clientId)
+        val user = usersRepository.get(email)
+
+        return when {
+            app == null -> ModelAndView("404")
+            user == null -> "redirect:/refresh/password/$clientId"
+            else -> {
+                val token = Safeguard.getUniqueToken()
+
+                changePasswordService.createToken(email, clientId, token)
+                notificationService.sendPasswordRefreshMessage(email, token)
+
+                ModelAndView("check-mailbox")
+            }
+        }
+    }
+
+    @GetMapping("/refresh/password/{token}")
+    fun showChangePasswordPage(
+            @PathVariable(value = "token") token: String): ModelAndView {
+        val rpt = refreshPasswordTokensRepository.getByToken(token)
+
+        return when (rpt) {
+            null -> ModelAndView("404")
+            else -> ModelAndView("refresh-password", hashMapOf("token" to token))
+        }
+    }
+
+    @PostMapping("/refresh/password/{token}")
+    fun changePasswordAndRedirect(
+            @PathVariable(value = "token") token: String,
+            @RequestParam(value = "new_password") newPassword: String): Any {
+        val rpt = refreshPasswordTokensRepository.getByToken(token)
+
+        return when (rpt) {
+            null -> ModelAndView("404")
+            else -> {
+                // TODO: rpt.user returns null. Fix it.
+                changePasswordService.changePassword(rpt.user!!, newPassword)
+
+                "redirect:/signin/${rpt.client_id}"
             }
         }
     }
