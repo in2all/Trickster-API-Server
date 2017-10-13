@@ -17,10 +17,9 @@ internal class ChangePasswordServiceImpl @Autowired constructor(
     override fun createToken(email: String, clientId: String?, token: String) {
         val expiresIn = Date().time + ConfigFactory.load().getLong("refresh_password_token.lifetime")
 
-        if (refreshPasswordTokensRepository.getByEmail(email) == null) {
-            refreshPasswordTokensRepository.create(email, token, clientId, expiresIn)
-        } else {
-            refreshPasswordTokensRepository.refresh(email, token, clientId, expiresIn)
+        when (refreshPasswordTokensRepository.getByEmail(email)) {
+            null -> refreshPasswordTokensRepository.create(email, token, clientId, expiresIn)
+            else -> refreshPasswordTokensRepository.refresh(email, token, clientId, expiresIn)
         }
     }
 
