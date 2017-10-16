@@ -45,14 +45,16 @@ class AuthController @Autowired constructor(
             @RequestParam(value = "password") password: String): Any {
         val app = appsRepository.get(clientId)
 
-        // TODO-misonijnik: Тут проверяется существование юзера с переданным паролем. Добавить шифрование.
-        val user = usersRepository.get(email, password)
+        val user = usersRepository.get(email)
 
         return when {
             app == null ->
                 // TODO: Не уверен, что в этом случае нужно отдавать 404. Разобраться.
                 ModelAndView("404", HttpStatus.NOT_FOUND)
             user == null ->
+                // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
+                "redirect:/signin/$clientId"
+            !Safeguard.assertPassword(password, user.password!!) ->
                 // TODO: Сообщение о неверном логине или пароле и просьба повторить их ввод.
                 "redirect:/signin/$clientId"
             else -> {
@@ -100,13 +102,11 @@ class AuthController @Autowired constructor(
                 val token = Safeguard.getUniqueToken()
                 val expiresIn = Date().time + ConfigFactory.load().getLong("signup_token.lifetime")
 
-                // TODO-misonijnik: Тут сохраняется пароль пользователя. Добавь шифрование.
-                signupDataRepository.create(email, password, clientId, token, expiresIn)
+                signupDataRepository.create(email, Safeguard.encodePassword(password), clientId, token, expiresIn)
 
                 try {
                     notificationService.sendEmailConfirmMessage(email, token)
-                }
-                catch (e: MailException) {
+                } catch (e: MailException) {
                     // TODO: Сообщение о неверном email.
                     return "redirect:/signup/$clientId"
                 }

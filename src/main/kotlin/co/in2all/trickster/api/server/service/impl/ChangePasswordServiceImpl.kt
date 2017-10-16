@@ -4,6 +4,7 @@ import co.in2all.trickster.api.server.entity.User
 import co.in2all.trickster.api.server.repository.RefreshPasswordTokensRepository
 import co.in2all.trickster.api.server.repository.UsersRepository
 import co.in2all.trickster.api.server.service.ChangePasswordService
+import co.in2all.trickster.api.server.utility.Safeguard
 import com.typesafe.config.ConfigFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -24,8 +25,6 @@ internal class ChangePasswordServiceImpl @Autowired constructor(
     }
 
     override fun changePassword(user: User, newPassword: String) {
-        //TODO-misonijnik: Добавь шифрование нового пароля.
-
-        usersRepository.changePassword(user.email!!, newPassword)
+        usersRepository.changePassword(user.email!!, Safeguard.encodePassword(newPassword))
     }
 }
